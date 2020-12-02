@@ -22,7 +22,7 @@ class Pipeline {
 //           for example: script.node(), script.stage() etc
 
 //    ===================== Parse configuration file ==================
-        def yamlTask = readYaml file: 'config.yaml'
+        def yamlTask = readYamlfile.configurationFile
         def buildKind = yamlTask.build
         def databaseKind = yamlTask.database
         def deployKind  = yamlTask.deploy
