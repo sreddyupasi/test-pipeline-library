@@ -23,6 +23,7 @@ class Pipeline {
 
 //    ===================== Parse configuration file ==================
         def yamlTask = readYaml file: 'config.yml'
+        println("yaml task parsed object: "+yamlTask)
         // def buildKind = yamlTask.build
         // def databaseKind = yamlTask.database
         // def deployKind  = yamlTask.deploy
