@@ -22,7 +22,37 @@ class Pipeline {
 //           for example: script.node(), script.stage() etc
 
 //    ===================== Parse configuration file ==================
-        def yamlTask = readYaml file: 'config.yml'
+        // def yamlTask = readYaml file: 'config.yml'
+        def yamlTask = readYaml text: """
+notifications:
+  email:
+    recipients: "my@box.com"
+    on_start: "never"
+    on_failure: "always"
+    on_success: "always"
+#Build configuration
+build:
+  projectFolder: 'project'
+  buildCommand: "mvn clean test"
+#Database configuration
+database:
+  databaseFolder: 'database'
+  databaseCommand: "mvn clean test -Dscope=FlywayMigration"
+#Deploy configuration
+deploy:
+  deployCommand: "mvn clean install"
+#Test configuration (should be run in parallel)
+test:
+- testFolder: "test"
+  name: "performance"
+  testCommand: "mvn clean test -Dscope=performance"
+- testFolder: "test"
+  name: "regression"
+  testCommand: "mvn clean test -Dscope=regression; exit 1"
+- testFolder: "test"
+  name: "integration"
+  testCommand: "mvn clean test -Dscope=integration"
+"""
         println("yaml task parsed object: "+yamlTask)
         // def buildKind = yamlTask.build
         // def databaseKind = yamlTask.database
