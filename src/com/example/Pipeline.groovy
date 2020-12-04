@@ -53,64 +53,93 @@ class Pipeline {
 //   name: "integration"
 //   testCommand: "mvn clean test -Dscope=integration"
 // """
-        println("yaml task parsed object: "+yamlTask)
-        def buildKind = yamlTask.build
-        def databaseKind = yamlTask.database
-        def deployKind  = yamlTask.deploy
-        def testList  = yamlTask.test
-        def notifyKind = yamlTask.notifications.email
+      node {
+        def mvnHome
+        stage('Preparation') { // for display purposes
+            // Get some code from a GitHub repository
+            // git 'https://github.com/jglick/simple-maven-project-with-tests.git'
+            // Get the Maven tool.
+            // ** NOTE: This 'M3' Maven tool must be configured
+            // **       in the global configuration.
+            // mvnHome = tool 'M3'
+            sh "echo 'hi'"
+        }
+        stage('Build') {
+            // Run the maven build
+            withEnv(["MVN_HOME=$mvnHome"]) {
+                if (isUnix()) {
+                    // sh '"$MVN_HOME/bin/mvn" -Dmaven.test.failure.ignore clean package'
+                    sh "echo 'hey there'"
+                } else {
+                    // bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
+                    sh 'echo "hi there"'
+                }
+            }
+        }
+        stage('Results') {
+            // junit '**/target/surefire-reports/TEST-*.xml'
+            // archiveArtifacts 'target/*.jar'
+            sh 'echo "hi there"'
+        }
+      }
+
+        // println("yaml task parsed object: "+yamlTask)
+        // def buildKind = yamlTask.build
+        // def databaseKind = yamlTask.database
+        // def deployKind  = yamlTask.deploy
+        // def testList  = yamlTask.test
+        // def notifyKind = yamlTask.notifications.email
 
 //    ===================== Run pipeline stages =======================
-        node{
-          try{
-              stage("build"){
-                  try{
-                      sh 'cd ${buildKind.projectFolder} && ${buildKind.buildCommand}'
-                  } catch (err){
-                      echo "Build step error:$err.message()"
-                      currentBuild.result = "FAILED"
-                  }
-              }
-              stage("database"){
-                  try{
-                      sh 'cd ${databaseKind.databaseFolder} && ${databaseKind.databaseCommand}'
-                  } catch (err){
-                      echo "Database step error:$err.message()"
-                      currentBuild.result = "FAILED"
-                  }
-              }
-              stage("deploy"){
-                  try{
-                      sh '${deployKind.deployCommand}'
-                  } catch (err){
-                      echo "Deploy step error:$err.message()"
-                      currentBuild.result = "FAILED"
-                  }
-              }
-              stage("test"){
-                  try{
-                      def parallelTasks = [:]
-                      for(int i=0; i<testList.size; i++){
-                          def task = testList.size[i]
-                          parallelTasks["Execute_${task.name}"] = {
-                            sh 'cd ${task.testFolder} && ${task.testCommand}'
-                          }
-                      }
-                      parallel parallelTasks
-                  } catch (err){
-                      echo "Test step parallel exception error:$err.message()"
-                      currentBuild.result = "FAILED"
-                  }
-              }
-          } catch (err){
-              echo "Pipeline Error"
-              currentBuild.result = "FAILED"
-          } finally {
-              if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
-                  notifyBuild(notifyKind.recipients)
-              }
-          }
-        }
+        // node{
+        //       stage("build"){
+        //           try{
+        //             sh 'cd ${buildKind.projectFolder} && ${buildKind.buildCommand}'
+        //           } catch (err){
+        //               echo "Build step error:$err.message()"
+        //               currentBuild.result = "FAILED"
+        //           }
+        //       }
+        //       stage("database"){
+        //           try{
+        //               sh 'cd ${databaseKind.databaseFolder} && ${databaseKind.databaseCommand}'
+        //           } catch (err){
+        //               echo "Database step error:$err.message()"
+        //               currentBuild.result = "FAILED"
+        //           }
+        //       }
+        //       stage("deploy"){
+        //           try{
+        //               sh '${deployKind.deployCommand}'
+        //           } catch (err){
+        //               echo "Deploy step error:$err.message()"
+        //               currentBuild.result = "FAILED"
+        //           }
+        //       }
+        //       stage("test"){
+        //           try{
+        //               def parallelTasks = [:]
+        //               for(int i=0; i<testList.size; i++){
+        //                   def task = testList.size[i]
+        //                   parallelTasks["Execute_${task.name}"] = {
+        //                     sh 'cd ${task.testFolder} && ${task.testCommand}'
+        //                   }
+        //               }
+        //               parallel parallelTasks
+        //           } catch (err){
+        //               echo "Test step parallel exception error:$err.message()"
+        //               currentBuild.result = "FAILED"
+        //           }
+        //       }
+        //   // } catch (err){
+        //   //     echo "Pipeline Error"
+        //   //     currentBuild.result = "FAILED"
+        //   // } finally {
+        //   //     if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
+        //   //         notifyBuild(notifyKind.recipients)
+        //   //     }
+        //   // }
+        // }
 //    ===================== End pipeline ==============================
     }
 }
