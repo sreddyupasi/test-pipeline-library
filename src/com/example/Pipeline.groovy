@@ -54,63 +54,63 @@ test:
   testCommand: "mvn clean test -Dscope=integration"
 """
         println("yaml task parsed object: "+yamlTask)
-        // def buildKind = yamlTask.build
-        // def databaseKind = yamlTask.database
-        // def deployKind  = yamlTask.deploy
-        // def testList  = yamlTask.test
-        // def notifyKind = yamlTask.notifications.email
+        def buildKind = yamlTask.build
+        def databaseKind = yamlTask.database
+        def deployKind  = yamlTask.deploy
+        def testList  = yamlTask.test
+        def notifyKind = yamlTask.notifications.email
 
 //    ===================== Run pipeline stages =======================
-        // node(){
-        //     try{
-        //         stage("build"){
-        //             try{
-        //                 sh 'cd ${buildKind.projectFolder} && ${buildKind.buildCommand}'
-        //             } catch (err){
-        //                 echo "Build step error:$err.message()"
-        //                 currentBuild.result = "FAILED"
-        //             }
-        //         }
-        //         stage("database"){
-        //             try{
-        //                 sh 'cd ${databaseKind.databaseFolder} && ${databaseKind.databaseCommand}'
-        //             } catch (err){
-        //                 echo "Database step error:$err.message()"
-        //                 currentBuild.result = "FAILED"
-        //             }
-        //         }
-        //         stage("deploy"){
-        //             try{
-        //                 sh '${deployKind.deployCommand}'
-        //             } catch (err){
-        //                 echo "Deploy step error:$err.message()"
-        //                 currentBuild.result = "FAILED"
-        //             }
-        //         }
-        //         stage("test"){
-        //             try{
-        //                 def parallelTasks = [:]
-        //                 for(int i=0; i<testList.size; i++){
-        //                     def task = testList.size[i]
-        //                     parallelTasks["Execute_${task.name}"] = {
-        //                         sh 'cd ${task.testFolder} && ${task.testCommand}'
-        //                     }
-        //                 }
-        //                 parallel parallelTasks
-        //             } catch (err){
-        //                 echo "Test step parallel exception error:$err.message()"
-        //                 currentBuild.result = "FAILED"
-        //             }
-        //         }
-        //     } catch (err){
-        //         echo "Pipeline Error"
-        //         currentBuild.result = "FAILED"
-        //     } finally {
-        //         if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
-        //             notifyBuild(notifyKind.recipients)
-        //         }
-        //     }
-        // }
+        node(){
+            try{
+                stage("build"){
+                    try{
+                        sh 'cd ${buildKind.projectFolder} && ${buildKind.buildCommand}'
+                    } catch (err){
+                        echo "Build step error:$err.message()"
+                        currentBuild.result = "FAILED"
+                    }
+                }
+                stage("database"){
+                    try{
+                        sh 'cd ${databaseKind.databaseFolder} && ${databaseKind.databaseCommand}'
+                    } catch (err){
+                        echo "Database step error:$err.message()"
+                        currentBuild.result = "FAILED"
+                    }
+                }
+                stage("deploy"){
+                    try{
+                        sh '${deployKind.deployCommand}'
+                    } catch (err){
+                        echo "Deploy step error:$err.message()"
+                        currentBuild.result = "FAILED"
+                    }
+                }
+                stage("test"){
+                    try{
+                        def parallelTasks = [:]
+                        for(int i=0; i<testList.size; i++){
+                            def task = testList.size[i]
+                            parallelTasks["Execute_${task.name}"] = {
+                                sh 'cd ${task.testFolder} && ${task.testCommand}'
+                            }
+                        }
+                        parallel parallelTasks
+                    } catch (err){
+                        echo "Test step parallel exception error:$err.message()"
+                        currentBuild.result = "FAILED"
+                    }
+                }
+            } catch (err){
+                echo "Pipeline Error"
+                currentBuild.result = "FAILED"
+            } finally {
+                if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
+                    notifyBuild(notifyKind.recipients)
+                }
+            }
+        }
 //    ===================== End pipeline ==============================
     }
 }
