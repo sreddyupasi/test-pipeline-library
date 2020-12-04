@@ -53,9 +53,9 @@ class Pipeline {
 //   name: "integration"
 //   testCommand: "mvn clean test -Dscope=integration"
 // """
-      node {
+      script.node() {
         def mvnHome
-        stage('Preparation') { // for display purposes
+        script.stage('Preparation') { // for display purposes
             // Get some code from a GitHub repository
             // git 'https://github.com/jglick/simple-maven-project-with-tests.git'
             // Get the Maven tool.
@@ -64,7 +64,7 @@ class Pipeline {
             // mvnHome = tool 'M3'
             sh "echo 'hi'"
         }
-        stage('Build') {
+        script.stage('Build') {
             // Run the maven build
             withEnv(["MVN_HOME=$mvnHome"]) {
                 if (isUnix()) {
@@ -76,7 +76,7 @@ class Pipeline {
                 }
             }
         }
-        stage('Results') {
+        script.stage('Results') {
             // junit '**/target/surefire-reports/TEST-*.xml'
             // archiveArtifacts 'target/*.jar'
             sh 'echo "hi there"'
