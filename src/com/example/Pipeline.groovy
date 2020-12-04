@@ -62,24 +62,24 @@ class Pipeline {
             // ** NOTE: This 'M3' Maven tool must be configured
             // **       in the global configuration.
             // mvnHome = tool 'M3'
-            sh "echo 'hi'"
+            script.sh "echo 'hi'"
         }
         script.stage('Build') {
             // Run the maven build
             withEnv(["MVN_HOME=$mvnHome"]) {
                 if (isUnix()) {
                     // sh '"$MVN_HOME/bin/mvn" -Dmaven.test.failure.ignore clean package'
-                    sh "echo 'hey there'"
+                    script.sh "echo 'hey there'"
                 } else {
                     // bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
-                    sh 'echo "hi there"'
+                    script.sh 'echo "hi there"'
                 }
             }
         }
         script.stage('Results') {
             // junit '**/target/surefire-reports/TEST-*.xml'
             // archiveArtifacts 'target/*.jar'
-            sh 'echo "hi there"'
+            script.sh 'echo "hi there"'
         }
       }
 
