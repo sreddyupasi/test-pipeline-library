@@ -53,18 +53,20 @@ class Pipeline {
 //   name: "integration"
 //   testCommand: "mvn clean test -Dscope=integration"
 // """
-      script.node() {
+      sh "pipeline starts before node"
+      node {
         def mvnHome
-        script.stage('Preparation') { // for display purposes
+        sh "pipeline starts inside node"
+        stage('Preparation') { // for display purposes
             // Get some code from a GitHub repository
             // git 'https://github.com/jglick/simple-maven-project-with-tests.git'
             // Get the Maven tool.
             // ** NOTE: This 'M3' Maven tool must be configured
             // **       in the global configuration.
             // mvnHome = tool 'M3'
-            script.sh "echo 'hi'"
+            sh "echo 'hi'"
         }
-        script.stage('Build') {
+        stage('Build') {
             // Run the maven build
             withEnv(["MVN_HOME=$mvnHome"]) {
                 if (isUnix()) {
@@ -79,7 +81,7 @@ class Pipeline {
         script.stage('Results') {
             // junit '**/target/surefire-reports/TEST-*.xml'
             // archiveArtifacts 'target/*.jar'
-            script.sh 'echo "hi there"'
+            sh 'echo "hi there"'
         }
       }
 
