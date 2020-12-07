@@ -138,24 +138,24 @@ class Pipeline {
         //           try{
         //             sh 'cd ${buildKind.projectFolder} && ${buildKind.buildCommand}'
         //           } catch (err){
-        //               echo "Build step error:$err.message()"
         //               currentBuild.result = "FAILED"
+        //               throw err
         //           }
         //       }
         //       stage("database"){
         //           try{
         //               sh 'cd ${databaseKind.databaseFolder} && ${databaseKind.databaseCommand}'
         //           } catch (err){
-        //               echo "Database step error:$err.message()"
         //               currentBuild.result = "FAILED"
+        //               throw err
         //           }
         //       }
         //       stage("deploy"){
         //           try{
         //               sh '${deployKind.deployCommand}'
         //           } catch (err){
-        //               echo "Deploy step error:$err.message()"
         //               currentBuild.result = "FAILED"
+        //               throw err
         //           }
         //       }
         //       stage("test"){
@@ -169,13 +169,13 @@ class Pipeline {
         //               }
         //               parallel parallelTasks
         //           } catch (err){
-        //               echo "Test step parallel exception error:$err.message()"
         //               currentBuild.result = "FAILED"
+        //               throw err
         //           }
         //       }
         //   } catch (err){
-        //       echo "Pipeline Error"
         //       currentBuild.result = "FAILED"
+        //       throw err
         //   } finally {
         //       if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
         //           notifyBuild(notifyKind.recipients)
