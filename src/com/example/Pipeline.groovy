@@ -16,13 +16,63 @@ class Pipeline {
                  to: recipients
     }
 
+    def codeBuild(buildKind){
+      stage("build"){
+        try{
+          sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
+        } catch (err){
+            sh "echo 'Build step error:$err'"
+            currentBuild.result = "FAILED"
+        }
+      }
+    }
+
+    def codeDBConfig(databaseKind){
+      stage("database"){
+        try{
+            sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
+        } catch (err){
+            sh "echo 'Database step error:$err'"
+            currentBuild.result = "FAILED"
+        }
+      }
+    }
+
+    def codeDeploy(deployKind){
+      stage("deploy"){
+        try{
+            sh '${deployKind[deployCommand]}'
+        } catch (err){
+            sh "echo 'Deploy step error:$err'"
+            currentBuild.result = "FAILED"
+        }
+      }
+    }
+
+    def codeTest(testList){
+      stage("test"){
+        try{
+            def parallelTasks = [:]
+            for(int i=0; i<testList.size; i++){
+                def task = testList.size[i]
+                parallelTasks["Execute_${task[name]}"] = {
+                  sh 'cd ${task[testFolder]} && ${task[testCommand]}'
+                }
+            }
+            parallel parallelTasks
+        } catch (err){
+            sh "echo 'Test step parallel exception error:$err'"
+            currentBuild.result = "FAILED"
+        }
+      }
+    }
+
     def execute() {
 //    ===================== Your Code Starts Here =====================
 //    Note : use "script" to access objects from jenkins pipeline run (WorkflowScript passed from Jenkinsfile)
 //           for example: script.node(), script.stage() etc
 
 //    ===================== Parse configuration file ==================
-        def yamlTask = readYaml file: configurationFile
 //         def yamlTask = readYaml text: """
 // notifications:
 //   email:
@@ -53,44 +103,29 @@ class Pipeline {
 //   name: "integration"
 //   testCommand: "mvn clean test -Dscope=integration"
 // """
-      sh "pipeline starts before node"
-      node {
-        def mvnHome
-        sh "pipeline starts inside node"
-        stage('Preparation') { // for display purposes
-            // Get some code from a GitHub repository
-            // git 'https://github.com/jglick/simple-maven-project-with-tests.git'
-            // Get the Maven tool.
-            // ** NOTE: This 'M3' Maven tool must be configured
-            // **       in the global configuration.
-            // mvnHome = tool 'M3'
-            sh "echo 'hi'"
-        }
-        stage('Build') {
-            // Run the maven build
-            withEnv(["MVN_HOME=$mvnHome"]) {
-                if (isUnix()) {
-                    // sh '"$MVN_HOME/bin/mvn" -Dmaven.test.failure.ignore clean package'
-                    script.sh "echo 'hey there'"
-                } else {
-                    // bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
-                    script.sh 'echo "hi there"'
-                }
-            }
-        }
-        script.stage('Results') {
-            // junit '**/target/surefire-reports/TEST-*.xml'
-            // archiveArtifacts 'target/*.jar'
-            sh 'echo "hi there"'
-        }
-      }
+        // node (){
+          try{
+            def yamlTask = readYaml file: configurationFile
+            sh "echo 'yaml task parsed object: $yamlTask'"
+            def buildKind = yamlTask.build
+            def databaseKind = yamlTask.database
+            def deployKind  = yamlTask.deploy
+            def testList  = yamlTask.test
+            def notifyKind = yamlTask.notifications.email
 
-        // println("yaml task parsed object: "+yamlTask)
-        // def buildKind = yamlTask.build
-        // def databaseKind = yamlTask.database
-        // def deployKind  = yamlTask.deploy
-        // def testList  = yamlTask.test
-        // def notifyKind = yamlTask.notifications.email
+            codeBuild(buildKind)
+            codeDBConfig(databaseKind)
+            codeDeploy(deployKind)
+            codeTest(testList)
+          } catch (err){
+            echo "Pipeline Error"
+            currentBuild.result = "FAILED"
+          } finally {
+            if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
+              notifyBuild(notifyKind.recipients)
+            }
+          }
+        // }
 
 //    ===================== Run pipeline stages =======================
         // node{
@@ -133,14 +168,14 @@ class Pipeline {
         //               currentBuild.result = "FAILED"
         //           }
         //       }
-        //   // } catch (err){
-        //   //     echo "Pipeline Error"
-        //   //     currentBuild.result = "FAILED"
-        //   // } finally {
-        //   //     if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
-        //   //         notifyBuild(notifyKind.recipients)
-        //   //     }
-        //   // }
+        //   } catch (err){
+        //       echo "Pipeline Error"
+        //       currentBuild.result = "FAILED"
+        //   } finally {
+        //       if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
+        //           notifyBuild(notifyKind.recipients)
+        //       }
+        //   }
         // }
 //    ===================== End pipeline ==============================
     }
