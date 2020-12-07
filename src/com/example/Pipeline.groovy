@@ -1,8 +1,14 @@
+#!/usr/bin/env groovy
 package com.example
 
 class Pipeline {
     def script
     def configurationFile
+    def buildKind
+    def databaseKind
+    def deployKind
+    def testList
+    def notifyKind
 
     Pipeline(script, configurationFile) {
         this.script = script
@@ -17,40 +23,33 @@ class Pipeline {
     }
 
     def codeBuild(buildKind){
-      stage("build"){
         try{
           sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
         } catch (err){
             sh "echo 'Build step error:$err'"
             currentBuild.result = "FAILED"
         }
-      }
     }
 
     def codeDBConfig(databaseKind){
-      stage("database"){
         try{
             sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
         } catch (err){
             sh "echo 'Database step error:$err'"
             currentBuild.result = "FAILED"
         }
-      }
     }
 
     def codeDeploy(deployKind){
-      stage("deploy"){
         try{
             sh '${deployKind[deployCommand]}'
         } catch (err){
             sh "echo 'Deploy step error:$err'"
             currentBuild.result = "FAILED"
         }
-      }
     }
 
     def codeTest(testList){
-      stage("test"){
         try{
             def parallelTasks = [:]
             for(int i=0; i<testList.size; i++){
@@ -64,10 +63,10 @@ class Pipeline {
             sh "echo 'Test step parallel exception error:$err'"
             currentBuild.result = "FAILED"
         }
-      }
     }
 
     def execute() {
+      echo "Execute method called"
 //    ===================== Your Code Starts Here =====================
 //    Note : use "script" to access objects from jenkins pipeline run (WorkflowScript passed from Jenkinsfile)
 //           for example: script.node(), script.stage() etc
