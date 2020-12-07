@@ -15,66 +15,6 @@ class Pipeline {
         this.configurationFile = configurationFile
     }
 
-    def sendEmail(String recipients){
-      emailext subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-               body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-                       <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
-               to: recipients
-    }
-
-    def notifyBuild(){
-      if (notifyKind[on_start] == "always" || notifyKind[on_failure] == "always" || notifyKind[on_success] == "always"){
-        sendEmail(notifyKind[recipients])
-      }
-    }
-
-    def codeBuild(){
-      try{
-        sh "echo 'hello code build'"
-        // sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
-      } catch (err){
-        currentBuild.result = "FAILED"
-        throw err
-      }
-    }
-
-    def codeDBConfig(){
-      try{
-        sh "echo 'hello code database config'"
-        // sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
-      } catch (err){
-        currentBuild.result = "FAILED"
-        throw err
-      }
-    }
-
-    def codeDeploy(){
-      try{
-        sh "echo 'hello code deploy'"
-        // sh '${deployKind[deployCommand]}'
-      } catch (err){
-        currentBuild.result = "FAILED"
-        throw err
-      }
-    }
-
-    def codeTest(){
-      try{
-        def parallelTasks = [:]
-        for(int i=0; i<testList.size; i++){
-          def task = testList.size[i]
-          parallelTasks["Execute_${task[name]}"] = {
-            sh "echo 'hello code test'"
-            // sh 'cd ${task[testFolder]} && ${task[testCommand]}'
-          }
-        }
-        parallel parallelTasks
-      } catch (err){
-        currentBuild.result = "FAILED"
-        throw err
-      }
-    }
-
     def execute() {
       sh "echo 'Execute method called'"
 //    ===================== Your Code Starts Here =====================
@@ -183,5 +123,64 @@ class Pipeline {
         //   }
         // }
 //    ===================== End pipeline ==============================
+    }
+    def sendEmail(String recipients){
+      emailext subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+               body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+                       <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+               to: recipients
+    }
+
+    def notifyBuild(){
+      if (notifyKind[on_start] == "always" || notifyKind[on_failure] == "always" || notifyKind[on_success] == "always"){
+        sendEmail(notifyKind[recipients])
+      }
+    }
+
+    def codeBuild(){
+      try{
+        sh "echo 'hello code build'"
+        // sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
+      } catch (err){
+        currentBuild.result = "FAILED"
+        throw err
+      }
+    }
+
+    def codeDBConfig(){
+      try{
+        sh "echo 'hello code database config'"
+        // sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
+      } catch (err){
+        currentBuild.result = "FAILED"
+        throw err
+      }
+    }
+
+    def codeDeploy(){
+      try{
+        sh "echo 'hello code deploy'"
+        // sh '${deployKind[deployCommand]}'
+      } catch (err){
+        currentBuild.result = "FAILED"
+        throw err
+      }
+    }
+
+    def codeTest(){
+      try{
+        def parallelTasks = [:]
+        for(int i=0; i<testList.size; i++){
+          def task = testList.size[i]
+          parallelTasks["Execute_${task[name]}"] = {
+            sh "echo 'hello code test'"
+            // sh 'cd ${task[testFolder]} && ${task[testCommand]}'
+          }
+        }
+        parallel parallelTasks
+      } catch (err){
+        currentBuild.result = "FAILED"
+        throw err
+      }
     }
 }
