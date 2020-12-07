@@ -30,10 +30,10 @@ class Pipeline {
 
     def codeBuild(){
         try{
-          sh "echo 'hello code build'"
+          script.sh "echo 'hello code build'"
           // sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
         } catch (err){
-          sh "echo 'Build step error:$err'"
+          script.sh "echo 'Build step error:$err'"
           currentBuild.result = "FAILED"
         }
     }
@@ -115,7 +115,7 @@ class Pipeline {
         // node (){
           try{
             def yamlTask = readYaml file: configurationFile
-            sh "echo 'yaml task parsed object: $yamlTask'"
+            script.sh "echo 'yaml task parsed object: $yamlTask'"
             buildKind = yamlTask.build
             databaseKind = yamlTask.database
             deployKind  = yamlTask.deploy
@@ -127,7 +127,7 @@ class Pipeline {
             // codeDeploy(deployKind)
             // codeTest(testList)
           } catch (err){
-            echo "Pipeline Error"
+            script.sh 'echo "Pipeline Error"'
             currentBuild.result = "FAILED"
           }
         // }
