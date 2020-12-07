@@ -15,14 +15,20 @@ class Pipeline {
         this.configurationFile = configurationFile
     }
 
-    def notifyBuild(String recipients){
+    def sendEmail(String recipients){
         emailext subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
                  body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
                          <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
                  to: recipients
     }
 
-    def codeBuild(buildKind){
+    def notifyBuild(){
+      if (notifyKind[on_start] == "always" || notifyKind[on_failure] == "always" || notifyKind[on_success] == "always"){
+            sendEmail(notifyKind[recipients])
+        }
+    }
+
+    def codeBuild(){
         try{
           sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
         } catch (err){
@@ -31,7 +37,7 @@ class Pipeline {
         }
     }
 
-    def codeDBConfig(databaseKind){
+    def codeDBConfig(){
         try{
             sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
         } catch (err){
@@ -40,7 +46,7 @@ class Pipeline {
         }
     }
 
-    def codeDeploy(deployKind){
+    def codeDeploy(){
         try{
             sh '${deployKind[deployCommand]}'
         } catch (err){
@@ -49,7 +55,7 @@ class Pipeline {
         }
     }
 
-    def codeTest(testList){
+    def codeTest(){
         try{
             def parallelTasks = [:]
             for(int i=0; i<testList.size; i++){
@@ -106,23 +112,19 @@ class Pipeline {
           try{
             def yamlTask = readYaml file: configurationFile
             sh "echo 'yaml task parsed object: $yamlTask'"
-            def buildKind = yamlTask.build
-            def databaseKind = yamlTask.database
-            def deployKind  = yamlTask.deploy
-            def testList  = yamlTask.test
-            def notifyKind = yamlTask.notifications.email
+            buildKind = yamlTask.build
+            databaseKind = yamlTask.database
+            deployKind  = yamlTask.deploy
+            testList  = yamlTask.test
+            notifyKind = yamlTask.notifications.email
 
-            codeBuild(buildKind)
-            codeDBConfig(databaseKind)
-            codeDeploy(deployKind)
-            codeTest(testList)
+            // codeBuild(buildKind)
+            // codeDBConfig(databaseKind)
+            // codeDeploy(deployKind)
+            // codeTest(testList)
           } catch (err){
             echo "Pipeline Error"
             currentBuild.result = "FAILED"
-          } finally {
-            if (notifyKind.on_start == "always" || notifyKind.on_failure == "always" || notifyKind.on_success == "always"){
-              notifyBuild(notifyKind.recipients)
-            }
           }
         // }
 
