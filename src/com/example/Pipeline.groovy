@@ -30,11 +30,11 @@ class Pipeline {
 
     def codeBuild(){
         try{
-          script.sh "echo 'hello code build'"
+          sh "echo 'hello code build'"
           // sh 'cd ${buildKind[projectFolder]} && ${buildKind[buildCommand]}'
         } catch (err){
-          script.sh "echo 'Build step error:$err'"
           currentBuild.result = "FAILED"
+          throw err
         }
     }
 
@@ -43,8 +43,8 @@ class Pipeline {
             sh "echo 'hello code database config'"
             // sh 'cd ${databaseKind[databaseFolder]} && ${databaseKind[databaseCommand]}'
         } catch (err){
-            sh "echo 'Database step error:$err'"
             currentBuild.result = "FAILED"
+            throw err
         }
     }
 
@@ -53,8 +53,8 @@ class Pipeline {
             sh "echo 'hello code deploy'"
             // sh '${deployKind[deployCommand]}'
         } catch (err){
-            sh "echo 'Deploy step error:$err'"
             currentBuild.result = "FAILED"
+            throw err
         }
     }
 
@@ -70,13 +70,13 @@ class Pipeline {
             }
             parallel parallelTasks
         } catch (err){
-            sh "echo 'Test step parallel exception error:$err'"
             currentBuild.result = "FAILED"
+            throw err
         }
     }
 
     def execute() {
-      sh 'echo "Execute method called"'
+      sh "echo 'Execute method called'"
 //    ===================== Your Code Starts Here =====================
 //    Note : use "script" to access objects from jenkins pipeline run (WorkflowScript passed from Jenkinsfile)
 //           for example: script.node(), script.stage() etc
@@ -115,7 +115,7 @@ class Pipeline {
         // node (){
           try{
             def yamlTask = readYaml file: configurationFile
-            script.sh "echo 'yaml task parsed object: $yamlTask'"
+            sh "echo 'yaml task parsed object: ${yamlTask}'"
             buildKind = yamlTask.build
             databaseKind = yamlTask.database
             deployKind  = yamlTask.deploy
@@ -127,8 +127,8 @@ class Pipeline {
             // codeDeploy(deployKind)
             // codeTest(testList)
           } catch (err){
-            script.sh 'echo "Pipeline Error"'
             currentBuild.result = "FAILED"
+            throw err
           }
         // }
 
